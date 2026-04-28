@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Setup Node version
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # tag v6.0.0
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run Tests
+        run: npm run pretest && npm test
+      - name: Set package.json version
+        run: npm version ${{github.ref_name}} --no-git-tag-version
+      - name: Install VSCE
+        run: npm install -g @vscode/vsce
+      - name: Create Changelog
+        run: |
+          git log $(git describe --tags --abbrev=0)..HEAD --oneline &> ${{ github.workspace }}-CHANGELOG.txt
+          cat ${{ github.workspace }}-CHANGELOG.txt
+      - name: Package Extension
+        run: vsce package ${{github.ref_name}} --no-git-tag-version --no-update-package-json -o "github-workflow-updater-${{github.ref_name}}.vsix"
+      - name: Publish to Visual Studio Marketplace
+        run: vsce publish --packagePath "./github-workflow-updater-${{github.ref_name}}.vsix" --no-git-tag-version --no-update-package-json -p ${{ secrets.VSC_MKTP_PAT }}
+      - name: Publish to Open VSX Registry
+        continue-on-error: false
+        uses: HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db # tag v2.0.0
+        with:
+          preRelease: false
+          pat: ${{ secrets.OPEN_VSX_TOKEN }}
+          extensionFile: "github-workflow-updater-${{github.ref_name}}.vsix"

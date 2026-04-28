@@ -1,0 +1,48 @@
+name: Export workflows to Dash0
+
+on:
+  workflow_run:
+    workflows:
+      # The name of the workflow(s) that triggers the export
+      - "CD"
+    types: [completed]
+
+jobs:
+  otel-export-dash0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: actions/checkout@main # skip-pinning
+      - uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
+      - name: Export workflow to Dash0
+        uses: corentinmusard/otel-cicd-action@90a4ca6ee4911b65f8e305b7fd7fe70675690362 # tag v2.2.2
+        with:
+          otlpEndpoint: grpc://ingress.eu-west-1.aws.dash0.com:4317
+          otlpHeaders: ${{ secrets.DASH0_OTLP_HEADERS }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          runId: ${{ github.event.workflow_run.id }}
+
+  comment-formats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # @v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin @v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag=v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  #   v4.2.2
+
+  ignored-formats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # Versions older than v4.2.2 have a security vulnerability
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 - This is an important note
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # do not update this comment
+
+permissions:
+  contents: read # Required. To access the private repository
+  actions: read # Required. To read workflow runs
+  pull-requests: read # Optional. To read PR labels
+  checks: read # Optional. To read run annotations

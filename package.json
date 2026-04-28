@@ -1,0 +1,70 @@
+{
+  "name": "github-workflow-updater",
+  "displayName": "GitHub Workflow Updater",
+  "description": "Pin GitHub Actions to specific commits for enhanced security",
+  "version": "0.0.2",
+  "publisher": "github-workflow-updater",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "github:RichardoC/github-workflow-updater-extension"
+  },
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "github-workflow-updater.updateWorkflow",
+        "title": "Update GitHub Workflow Actions",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "github-workflow-updater.configureToken",
+        "title": "Configure GitHub Token",
+        "category": "GitHub Workflow Updater"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceExtname == .yml || resourceExtname == .yaml",
+          "command": "github-workflow-updater.updateWorkflow",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "GitHub Workflow Updater",
+      "properties": {
+        "github-workflow-updater.suppressTokenWarning": {
+          "type": "boolean",
+          "default": false,
+          "description": "Suppress warning about missing GitHub token",
+          "scope": "application"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/semver": "^7.7.0",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "semver": "^7.5.4",
+    "yaml": "^2.3.4"
+  }
+}
