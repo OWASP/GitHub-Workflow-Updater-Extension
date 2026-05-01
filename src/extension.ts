@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { GitHubApiService, ActionUpdate } from "./githubApi";
 import { WorkflowParser, WorkflowAction, UpdateResult } from "./workflowParser";
+import { resolveGitHubToken } from "./tokenProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   // Migrate existing token from configuration to secret storage
@@ -63,8 +64,8 @@ async function updateWorkflowCommand(
     return;
   }
 
-  // Get GitHub token from secret storage
-  const githubToken = await getStoredToken(context);
+  // Get GitHub token from secret storage, falling back to GH_TOKEN.
+  const githubToken = resolveGitHubToken(await getStoredToken(context));
   const config = vscode.workspace.getConfiguration("github-workflow-updater");
   const suppressTokenWarning = config.get<boolean>(
     "suppressTokenWarning",

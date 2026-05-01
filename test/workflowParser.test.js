@@ -4,9 +4,13 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const { WorkflowParser } = require("../out/workflowParser");
+const {
+  getGitHubTokenFromEnvironment,
+  resolveGitHubToken,
+} = require("../out/tokenProvider");
 
 const fixturePath = path.join(__dirname, "..", "test-workflow.yml");
-const fixtureContent = fs.readFileSync(fixturePath, "utf8");
+const fixtureContent = fs.readFileSync(fixturePath, "utf8").replace(/\r\n/g, "\n");
 const fixtureLines = fixtureContent.split("\n");
 
 function getActionByFullPath(actions, fullPath) {
@@ -275,4 +279,28 @@ test("reusable workflows are mapped to the repository while preserving the workf
 
   assert.equal(action.repository, "owner/repo");
   assert.equal(action.fullPath, "owner/repo/.github/workflows/reusable.yml");
+});
+
+test("configured GitHub token takes precedence over GH_TOKEN", () => {
+  const token = resolveGitHubToken("configured-token", {
+    GH_TOKEN: "environment-token",
+  });
+
+  assert.equal(token, "configured-token");
+});
+
+test("GH_TOKEN is used when no GitHub token is configured", () => {
+  const token = resolveGitHubToken("", {
+    GH_TOKEN: "environment-token",
+  });
+
+  assert.equal(token, "environment-token");
+});
+
+test("GH_TOKEN fallback trims whitespace and ignores blank values", () => {
+  assert.equal(
+    getGitHubTokenFromEnvironment({ GH_TOKEN: "  environment-token  " }),
+    "environment-token"
+  );
+  assert.equal(resolveGitHubToken("", { GH_TOKEN: "   " }), "");
 });

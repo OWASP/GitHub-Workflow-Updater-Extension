@@ -36,13 +36,13 @@ Click <cursor:extension/github-workflow-updater.github-workflow-updater>
 
 ## Configuration
 
-Set your GitHub Personal Access Token in VS Code settings:
+Configure your GitHub Personal Access Token with the extension command:
 
 ```
-GitHub Workflow Updater: Github Token
+GitHub Workflow Updater: Configure GitHub Token
 ```
 
-This token is required for accessing private repositories and helps avoid rate limits.
+The token is stored in VS Code Secret Storage. If no token is configured there, the extension will use the `GH_TOKEN` environment variable for the current VS Code process. This token is required for accessing private repositories and helps avoid rate limits.
 
 ## Skip Pinning
 
@@ -160,9 +160,8 @@ This creates a `.vsix` file that can be installed in VS Code or Cursor.
    - Restart your editor
 
 3. **Configure GitHub token** (optional but recommended):
-   - Go to Settings (Code → Preferences → Settings)
-   - Search for "GitHub Workflow Updater"
-   - Set your GitHub Personal Access Token
+   - Run `GitHub Workflow Updater: Configure GitHub Token` from the Command Palette
+   - Or start VS Code with `GH_TOKEN` set in the environment
 
 ### GitHub Token Scopes
 

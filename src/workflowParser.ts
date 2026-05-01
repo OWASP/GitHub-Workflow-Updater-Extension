@@ -28,7 +28,7 @@ export class WorkflowParser {
     private static readonly SKIP_PINNING_REGEX = /skip-pinning/i;
 
     static parseWorkflow(content: string): WorkflowAction[] {
-        const lines = content.split('\n');
+        const lines = content.split(/\r?\n/);
         const actions: WorkflowAction[] = [];
 
         for (let i = 0; i < lines.length; i++) {
@@ -97,7 +97,8 @@ export class WorkflowParser {
     }
 
     static applyUpdates(content: string, updates: UpdateResult[]): string {
-        const lines = content.split('\n');
+        const lineEnding = content.includes('\r\n') ? '\r\n' : '\n';
+        const lines = content.split(/\r?\n/);
         
         // Sort updates by line number in descending order to avoid index shifting
         const sortedUpdates = updates.sort((a, b) => b.line - a.line);
@@ -108,7 +109,7 @@ export class WorkflowParser {
             }
         }
         
-        return lines.join('\n');
+        return lines.join(lineEnding);
     }
 
     static extractVersionFromComment(comment: string): string {
