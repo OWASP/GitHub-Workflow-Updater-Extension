@@ -16,6 +16,7 @@ A VS Code extension that automatically pins GitHub Actions to specific commits f
 ## Installation
 
 ### VSCode
+
 Run the following in the edit prompt (ctrl+shift+p)
 
 ```
@@ -23,12 +24,15 @@ ext install OWASP.Github-Workflow-Updater-Extension
 ```
 
 ### Cursor
+
 Click <cursor:extension/OWASP.Github-Workflow-Updater-Extension>
 
+> **Note**: The extension is listed as **OWASP GitHub Workflow Updater** on the VS Code Marketplace to distinguish it from the previous publication.
+
 ### Available from the following registries
+
 [Open VSX Registry](https://open-vsx.org/extension/OWASP-github-workflow-updater/github-workflow-updater)
 [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=OWASP.Github-Workflow-Updater-Extension)
-
 
 ## Usage
 
@@ -57,12 +61,14 @@ To prevent an action from being updated, add a `# skip-pinning` comment:
 ## Example
 
 **Before:**
+
 ```yaml
 - uses: actions/checkout@v4
 - uses: actions/setup-node@v3.5.1
 ```
 
 **After:**
+
 ```yaml
 - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
@@ -76,27 +82,29 @@ To prevent an action from being updated, add a `# skip-pinning` comment:
 ## Security
 
 This extension enhances security by:
+
 - Pinning actions to specific commits prevents supply chain attacks
 - Immutable references ensure consistent behavior
 - Following security best practices from StepSecurity
 
 ## Development
 
-
-
 ### Building the Extension
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Compile TypeScript**:
+
    ```bash
    npm run compile
    ```
-   
+
    Or watch for changes during development:
+
    ```bash
    npm run watch
    ```
@@ -130,6 +138,7 @@ npm test
 ```
 
 The test suite is offline by design:
+
 - it uses Node's built-in test runner, so no extra test framework is required
 - it reads the local `test-workflow.yml` fixture and uses mocked update metadata
 - it does not call the GitHub API, which keeps tests deterministic and avoids leaking tokens or depending on network access
@@ -172,10 +181,12 @@ ext install OWASP.Github-Workflow-Updater-Extension
 ### GitHub Token Scopes
 
 For **Classic Personal Access Tokens**, you need:
+
 - `public_repo` - Access public repositories
 - `repo` - Full access to private repositories (if you need private repo access)
 
 For **Fine-grained Personal Access Tokens**, you need:
+
 - **Repository permissions**:
   - `Contents: Read` - Read repository files and metadata
   - `Metadata: Read` - Read repository metadata (required)
@@ -188,6 +199,7 @@ For **Fine-grained Personal Access Tokens**, you need:
 ### 404 Not Found Errors
 
 If you see errors like:
+
 ```
 Failed to update tesslio/github-workflows/.github/workflows/production-deploy.yml: Error: GitHub API error: 404 - {"message":"Not Found"}
 ```
