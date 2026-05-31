@@ -27,16 +27,22 @@ jobs:
         run: npm install -g @vscode/vsce
       - name: Create Changelog
         run: |
-          git log $(git describe --tags --abbrev=0)..HEAD --oneline &> ${{ github.workspace }}-CHANGELOG.txt
-          cat ${{ github.workspace }}-CHANGELOG.txt
-      - name: Package Extension
-        run: vsce package ${{github.ref_name}} --no-git-tag-version --no-update-package-json -o "github-workflow-updater-${{github.ref_name}}.vsix"
-      - name: Publish to Visual Studio Marketplace
-        run: vsce publish --packagePath "./github-workflow-updater-${{github.ref_name}}.vsix" --no-git-tag-version --no-update-package-json -p ${{ secrets.VSC_MKTP_PAT }}
+          git log $(git describe --tags --abbrev=0)..HEAD --oneline > CHANGELOG.txt
+          cat CHANGELOG.txt
+      - name: Set OpenVSX identity
+        run: node scripts/patch-package-json.js publisher=OWASP-github-workflow-updater
+      - name: Package Extension (OpenVSX)
+        run: vsce package ${{github.ref_name}} --no-git-tag-version --no-update-package-json -o "OWASP-github-workflow-updater.github-workflow-updater-${{github.ref_name}}.vsix"
       - name: Publish to Open VSX Registry
         continue-on-error: false
         uses: HaaLeo/publish-vscode-extension@ca5561daa085dee804bf9f37fe0165785a9b14db # tag v2.0.0
         with:
           preRelease: false
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
-          extensionFile: "github-workflow-updater-${{github.ref_name}}.vsix"
+          extensionFile: "OWASP-github-workflow-updater.github-workflow-updater-${{github.ref_name}}.vsix"
+      - name: Set VS Code Marketplace identity
+        run: node scripts/patch-package-json.js publisher=OWASP name=Github-Workflow-Updater-Extension
+      - name: Package Extension (VS Code Marketplace)
+        run: vsce package ${{github.ref_name}} --no-git-tag-version --no-update-package-json -o "OWASP.Github-Workflow-Updater-Extension-${{github.ref_name}}.vsix"
+      - name: Publish to Visual Studio Marketplace
+        run: vsce publish --packagePath "./OWASP.Github-Workflow-Updater-Extension-${{github.ref_name}}.vsix" --no-git-tag-version --no-update-package-json -p ${{ secrets.VSC_MKTP_PAT }}

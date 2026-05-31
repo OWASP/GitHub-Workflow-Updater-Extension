@@ -2,25 +2,46 @@
   "name": "github-workflow-updater",
   "displayName": "GitHub Workflow Updater",
   "description": "Pin GitHub Actions to specific commits for enhanced security",
-  "version": "0.0.2",
-  "publisher": "github-workflow-updater",
+  "version": "0.0.3",
+  "publisher": "OWASP",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages",
+    "Security",
+    "Developer Tools"
   ],
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "github:RichardoC/github-workflow-updater-extension"
+    "url": "github:OWASP/GitHub-Workflow-Updater-Extension"
   },
-  "activationEvents": [],
+  "bugs": {
+    "url": "https://github.com/OWASP/GitHub-Workflow-Updater-Extension/issues"
+  },
+  "homepage": "https://www.owasp.community/projects/github-workflow-updater-extension",
+  "keywords": [
+    "github",
+    "actions",
+    "workflow",
+    "security",
+    "pinning",
+    "supply-chain",
+    "owasp"
+  ],
+  "activationEvents": [
+    "onCommand:github-workflow-updater.updateWorkflow",
+    "onCommand:github-workflow-updater.configureToken",
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "github-workflow-updater.updateWorkflow",
         "title": "Update GitHub Workflow Actions",
+        "category": "GitHub Workflow Updater",
         "icon": "$(sync)"
       },
       {
@@ -60,7 +81,7 @@
   "devDependencies": {
     "@types/node": "16.x",
     "@types/semver": "^7.7.0",
-    "@types/vscode": "^1.118.0",
+    "@types/vscode": "^1.74.0",
     "typescript": "^4.9.4"
   },
   "dependencies": {
