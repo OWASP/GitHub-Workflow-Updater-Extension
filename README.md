@@ -2,7 +2,7 @@
 
 A VS Code extension that automatically pins GitHub Actions to specific commits for enhanced security.
 
-> **⚠️ Experimental Project**: This extension is entirely experimental and was written by Claude Code. Use at your own discretion.
+> An [OWASP](https://owasp.org) project that helps secure GitHub Actions workflows by pinning actions to immutable commit hashes.
 
 ## Features
 
@@ -18,14 +18,16 @@ A VS Code extension that automatically pins GitHub Actions to specific commits f
 ### VSCode
 Run the following in the edit prompt (ctrl+shift+p)
 
-```ext install github-workflow-updater.github-workflow-updater```
+```
+ext install OWASP.Github-Workflow-Updater-Extension
+```
 
 ### Cursor
-Click <cursor:extension/github-workflow-updater.github-workflow-updater>
+Click <cursor:extension/OWASP.Github-Workflow-Updater-Extension>
 
 ### Available from the following registries
-[open-vsx](https://open-vsx.org/extension/github-workflow-updater/github-workflow-updater)
-[Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=github-workflow-updater.github-workflow-updater)
+[Open VSX Registry](https://open-vsx.org/extension/OWASP-github-workflow-updater/github-workflow-updater)
+[Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=OWASP.Github-Workflow-Updater-Extension)
 
 
 ## Usage
@@ -144,7 +146,10 @@ This creates a `.vsix` file that can be installed in VS Code or Cursor.
 ## Installation
 
 ### From VS Code Marketplace
-*This extension is not yet published to the marketplace.*
+
+```
+ext install OWASP.Github-Workflow-Updater-Extension
+```
 
 ### Manual Installation
 
