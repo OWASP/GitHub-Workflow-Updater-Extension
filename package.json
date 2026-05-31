@@ -60,6 +60,13 @@
     "configuration": {
       "title": "GitHub Workflow Updater",
       "properties": {
+        "github-workflow-updater.cooldownHours": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Number of hours to wait before updating to a newly published version",
+          "scope": "application"
+        },
         "github-workflow-updater.suppressTokenWarning": {
           "type": "boolean",
           "default": false,
