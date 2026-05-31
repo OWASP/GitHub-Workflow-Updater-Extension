@@ -41,11 +41,8 @@ jobs:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
           extensionFile: "OWASP-github-workflow-updater.github-workflow-updater-${{github.ref_name}}.vsix"
       - name: Set VS Code Marketplace identity
-<<<<<<< Updated upstream
-        run: node scripts/patch-package-json.js publisher=OWASP name=Github-Workflow-Updater-Extension
-=======
         run: node scripts/patch-package-json.js publisher=OWASP name=Github-Workflow-Updater-Extension 'displayName=OWASP GitHub Workflow Updater'
->>>>>>> Stashed changes
+
       - name: Package Extension (VS Code Marketplace)
         run: vsce package ${{github.ref_name}} --no-git-tag-version --no-update-package-json -o "OWASP.Github-Workflow-Updater-Extension-${{github.ref_name}}.vsix"
       - name: Publish to Visual Studio Marketplace
