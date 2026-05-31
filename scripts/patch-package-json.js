@@ -1,12 +1,28 @@
 // Patch package.json fields while preserving key order
+<<<<<<< Updated upstream
 // Usage: node scripts/patch-package-json.js <field>=<value> [<field>=<value> ...]
+=======
+// Usage: node scripts/patch-package-json.js key1=value1 key2=value2 "key3=value with spaces"
+//   e.g. node scripts/patch-package-json.js publisher=OWASP "displayName=OWASP GitHub Workflow Updater"
+>>>>>>> Stashed changes
 
 const fs = require('fs');
 
 const patches = {};
 for (const arg of process.argv.slice(2)) {
+<<<<<<< Updated upstream
     const [key, ...rest] = arg.split('=');
     patches[key] = rest.join('='); // handle values that might contain '='
+=======
+    const eqIndex = arg.indexOf('=');
+    if (eqIndex === -1) {
+        console.error(`Skipping invalid argument (missing =): ${arg}`);
+        continue;
+    }
+    const key = arg.substring(0, eqIndex);
+    const value = arg.substring(eqIndex + 1);
+    patches[key] = value;
+>>>>>>> Stashed changes
 }
 
 const data = fs.readFileSync('package.json', 'utf8');

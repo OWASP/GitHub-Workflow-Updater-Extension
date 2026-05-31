@@ -24,6 +24,11 @@ ext install OWASP.Github-Workflow-Updater-Extension
 
 ### Cursor
 Click <cursor:extension/OWASP.Github-Workflow-Updater-Extension>
+<<<<<<< Updated upstream
+=======
+
+> **Note**: The extension is listed as **OWASP GitHub Workflow Updater** on the VS Code Marketplace to distinguish it from the previous publication.
+>>>>>>> Stashed changes
 
 ### Available from the following registries
 [Open VSX Registry](https://open-vsx.org/extension/OWASP-github-workflow-updater/github-workflow-updater)
