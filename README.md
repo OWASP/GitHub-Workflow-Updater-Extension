@@ -97,17 +97,19 @@ This extension enhances security by:
    npm install
    ```
 
-2. **Compile TypeScript**:
+2. **Bundle for production** (used by `vsce package` automatically):
 
    ```bash
-   npm run compile
+   npm run esbuild
    ```
 
-   Or watch for changes during development:
+   Or, for development with live reloading:
 
    ```bash
    npm run watch
    ```
+
+   The extension uses **esbuild** for bundling: all source files and dependencies are combined into a single `out/extension.js`. TypeScript compilation (`npm run compile`) is still used by the test suite, which imports the individual compiled modules.
 
 ### Testing the Extension
 
@@ -146,11 +148,11 @@ The test suite is offline by design:
 ### Packaging for Distribution
 
 ```bash
-npm install -g vsce
+npm install -g @vscode/vsce
 vsce package
 ```
 
-This creates a `.vsix` file that can be installed in VS Code or Cursor.
+This creates a `.vsix` file that can be installed in VS Code or Cursor. The `vsce package` command automatically runs the esbuild bundler (via the `vscode:prepublish` script), so no separate build step is needed.
 
 ## Installation
 
