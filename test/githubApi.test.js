@@ -231,3 +231,108 @@ test("getLatestActionVersion proceeds with tag when commit date fetch fails", as
   assert.equal(result.withinCooldown, undefined);
   assert.equal(result.publishedAt, null);
 });
+
+test("getLatestActionVersion returns previous release when latest is within cooldown", async () => {
+  const api = createMockApi([
+    [
+      {
+        tag_name: "v1.2.3",
+        target_commitish: "main",
+        prerelease: false,
+        published_at: hoursAgo(2).toISOString(),
+      },
+      {
+        tag_name: "v1.2.2",
+        target_commitish: "main",
+        prerelease: false,
+        published_at: hoursAgo(48).toISOString(),
+      },
+    ],
+    { object: { sha: "abc122", type: "commit" } },
+  ]);
+
+  const cutoff = hoursAgo(24);
+  const result = await api.getLatestActionVersion("owner/repo", cutoff);
+
+  assert.equal(result.latestVersion, "v1.2.2");
+  assert.equal(result.latestCommit, "abc122");
+  assert.equal(result.withinCooldown, undefined);
+  assert.ok(result.publishedAt);
+  assert.ok(result.publishedAt <= cutoff);
+});
+
+test("getLatestActionVersion returns previous semver tag when latest is within cooldown", async () => {
+  const api = createMockApi([
+    [],
+    [
+      { name: "v1.2.3", commit: { sha: "tagsha3" } },
+      { name: "v1.2.2", commit: { sha: "tagsha2" } },
+    ],
+    {
+      sha: "tagsha3",
+      commit: { committer: { date: hoursAgo(2).toISOString() } },
+    },
+    {
+      sha: "tagsha2",
+      commit: { committer: { date: hoursAgo(48).toISOString() } },
+    },
+  ]);
+
+  const cutoff = hoursAgo(24);
+  const result = await api.getLatestActionVersion("owner/repo", cutoff);
+
+  assert.equal(result.latestVersion, "v1.2.2");
+  assert.equal(result.latestCommit, "tagsha2");
+  assert.equal(result.withinCooldown, undefined);
+  assert.ok(result.publishedAt);
+  assert.ok(result.publishedAt <= cutoff);
+});
+
+test("getLatestActionVersion returns previous non-semver tag when latest is within cooldown", async () => {
+  const api = createMockApi([
+    [],
+    [
+      { name: "nightly-2025-01-01", commit: { sha: "nightsha1" } },
+      { name: "nightly-2024-12-31", commit: { sha: "nightsha2" } },
+    ],
+    {
+      sha: "nightsha1",
+      commit: { committer: { date: hoursAgo(2).toISOString() } },
+    },
+    {
+      sha: "nightsha2",
+      commit: { committer: { date: hoursAgo(48).toISOString() } },
+    },
+  ]);
+
+  const cutoff = hoursAgo(24);
+  const result = await api.getLatestActionVersion("owner/repo", cutoff);
+
+  assert.equal(result.latestVersion, "nightly-2024-12-31");
+  assert.equal(result.latestCommit, "nightsha2");
+  assert.equal(result.withinCooldown, undefined);
+  assert.ok(result.publishedAt);
+  assert.ok(result.publishedAt <= cutoff);
+});
+
+test("getLatestActionVersion caches results for the same repository and cutoff", async () => {
+  const api = createMockApi([
+    [
+      {
+        tag_name: "v1.2.3",
+        target_commitish: "main",
+        prerelease: false,
+        published_at: hoursAgo(48).toISOString(),
+      },
+    ],
+    { object: { sha: "abc123", type: "commit" } },
+  ]);
+
+  const cutoff = hoursAgo(24);
+
+  const result1 = await api.getLatestActionVersion("owner/repo", cutoff);
+  assert.equal(result1.latestVersion, "v1.2.3");
+
+  const result2 = await api.getLatestActionVersion("owner/repo", cutoff);
+  assert.equal(result2.latestVersion, "v1.2.3");
+});
