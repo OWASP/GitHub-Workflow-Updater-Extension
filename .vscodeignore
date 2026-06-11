@@ -3,14 +3,14 @@
 src/**
 test/**
 .gitignore
-.tsconfig.json
 **/tsconfig.json
-**/.eslintrc.json
 **/*.map
 **/*.ts
-# Do NOT exclude node_modules — vsce only includes production dependencies automatically
-# node_modules/**
 .github/**
 test-workflow.yml
 scripts/**
 *.vsix
+node_modules/**
+out/githubApi.js
+out/workflowParser.js
+logo.jpg
