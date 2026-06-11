@@ -1,6 +1,13 @@
 import * as vscode from "vscode";
-import { GitHubApiService, ActionUpdate } from "./githubApi";
-import { WorkflowParser, WorkflowAction, UpdateResult } from "./workflowParser";
+import { GitHubApiService } from "./githubApi";
+import { WorkflowParser, UpdateResult } from "./workflowParser";
+
+interface CooldownSkip {
+  repository: string;
+  latestVersion: string;
+  publishedAt: Date | null;
+  cooldownHours: number;
+}
 
 export function activate(context: vscode.ExtensionContext) {
   // Migrate existing token from configuration to secret storage
@@ -70,6 +77,11 @@ async function updateWorkflowCommand(
     "suppressTokenWarning",
     false
   );
+  const cooldownHours = config.get<number>("cooldownHours", 0);
+  const cutoffTime =
+    cooldownHours > 0
+      ? new Date(Date.now() - cooldownHours * 60 * 60 * 1000)
+      : undefined;
 
   if (!githubToken && !suppressTokenWarning) {
     const result = await vscode.window.showWarningMessage(
@@ -136,6 +148,7 @@ async function updateWorkflowCommand(
 
         const updates: UpdateResult[] = [];
         const errors: string[] = [];
+        const cooldownSkips: CooldownSkip[] = [];
 
         for (let i = 0; i < actionsToUpdate.length; i++) {
           if (token.isCancellationRequested) {
@@ -150,48 +163,63 @@ async function updateWorkflowCommand(
 
           try {
             const updateInfo = await githubApi.getLatestActionVersion(
-              action.repository
+              action.repository,
+              cutoffTime
             );
 
-            if (updateInfo) {
-              // Check if already up-to-date
-              const currentVersion = WorkflowParser.extractVersionFromComment(
-                action.currentComment
-              );
-              const isAlreadyPinned = action.currentRef.length === 40; // SHA is 40 chars
-              const isSameVersion = WorkflowParser.areVersionsEqual(
-                currentVersion,
-                updateInfo.latestVersion
-              );
-              const isSameCommit =
-                action.currentRef === updateInfo.latestCommit;
-
-              // Debug logging
-              console.log(
-                `${action.repository}: current="${currentVersion}", latest="${updateInfo.latestVersion}", pinned=${isAlreadyPinned}, sameVersion=${isSameVersion}, sameCommit=${isSameCommit}`
-              );
-
-              if (isAlreadyPinned && (isSameVersion || isSameCommit)) {
-                // Skip - already up to date
-                continue;
-              }
-
-              const updatedLine = WorkflowParser.updateActionLine(
-                action,
-                updateInfo.latestVersion,
-                updateInfo.latestCommit
-              );
-
-              updates.push({
-                line: action.line,
-                original: action.original,
-                updated: updatedLine,
-                repository: action.repository,
-                oldVersion: currentVersion || action.currentRef,
-                newVersion: updateInfo.latestVersion,
-                newCommit: updateInfo.latestCommit,
-              });
+            if (!updateInfo) {
+              continue;
             }
+
+            // Check if already up-to-date (even if within cooldown)
+            const currentVersion = WorkflowParser.extractVersionFromComment(
+              action.currentComment
+            );
+            const isAlreadyPinned = action.currentRef.length === 40; // SHA is 40 chars
+            const isSameVersion = WorkflowParser.areVersionsEqual(
+              currentVersion,
+              updateInfo.latestVersion
+            );
+            const isSameCommit =
+              updateInfo.latestCommit &&
+              action.currentRef === updateInfo.latestCommit;
+
+            // Debug logging
+            console.log(
+              `${action.repository}: current="${currentVersion}", latest="${updateInfo.latestVersion}", pinned=${isAlreadyPinned}, sameVersion=${isSameVersion}, sameCommit=${isSameCommit}`
+            );
+
+            if (isAlreadyPinned && (isSameVersion || isSameCommit)) {
+              // Skip - already up to date
+              continue;
+            }
+
+            // Not on the latest version — check cooldown
+            if (updateInfo.withinCooldown) {
+              cooldownSkips.push({
+                repository: action.repository,
+                latestVersion: updateInfo.latestVersion,
+                publishedAt: updateInfo.publishedAt,
+                cooldownHours,
+              });
+              continue;
+            }
+
+            const updatedLine = WorkflowParser.updateActionLine(
+              action,
+              updateInfo.latestVersion,
+              updateInfo.latestCommit
+            );
+
+            updates.push({
+              line: action.line,
+              original: action.original,
+              updated: updatedLine,
+              repository: action.repository,
+              oldVersion: currentVersion || action.currentRef,
+              newVersion: updateInfo.latestVersion,
+              newCommit: updateInfo.latestCommit,
+            });
           } catch (error) {
             const errorMsg = `Failed to update ${action.repository}: ${error}`;
             errors.push(errorMsg);
@@ -214,15 +242,26 @@ async function updateWorkflowCommand(
           await vscode.workspace.applyEdit(edit);
 
           // Show summary
-          const summary = createUpdateSummary(updates);
+          let message = `Updated ${updates.length} action(s)`;
+          if (cooldownSkips.length > 0) {
+            message += `, ${cooldownSkips.length} skipped due to cooldown`;
+          }
+          vscode.window
+            .showInformationMessage(message, "Show Details")
+            .then((selection) => {
+              if (selection === "Show Details") {
+                showUpdateDetails(updates, errors, cooldownSkips);
+              }
+            });
+        } else if (cooldownSkips.length > 0) {
           vscode.window
             .showInformationMessage(
-              `Updated ${updates.length} action(s)`,
+              `${cooldownSkips.length} action(s) skipped due to cooldown`,
               "Show Details"
             )
             .then((selection) => {
               if (selection === "Show Details") {
-                showUpdateDetails(updates, errors);
+                showUpdateDetails(updates, errors, cooldownSkips);
               }
             });
         } else {
@@ -257,41 +296,58 @@ function isLikelyWorkflowFile(content: string): boolean {
   );
 }
 
-function createUpdateSummary(updates: UpdateResult[]): string {
-  return updates
-    .map(
-      (update) =>
-        `${update.repository}: ${update.oldVersion} → ${update.newVersion}`
-    )
-    .join("\n");
-}
-
-function showUpdateDetails(updates: UpdateResult[], errors: string[]): void {
-  const content = [
+function showUpdateDetails(updates: UpdateResult[], errors: string[], cooldownSkips: CooldownSkip[]): void {
+  const sections: string[] = [
     "# GitHub Workflow Update Summary",
     "",
-    "## Updated Actions",
-    ...updates.map((update) => {
-      const isTaggedVersion = update.newVersion.match(/^v?\d+\.\d+\.\d+/);
-      let link = "";
+  ];
 
-      if (isTaggedVersion) {
-        // Link to release notes
-        link = `https://github.com/${update.repository}/releases/tag/${update.newVersion}`;
-      } else {
-        // Link to commit
-        link = `https://github.com/${update.repository}/commit/${update.newCommit}`;
-      }
+  if (updates.length > 0) {
+    sections.push(
+      "## Updated Actions",
+      ...updates.map((update) => {
+        const isTaggedVersion = update.newVersion.match(/^v?\d+\.\d+\.\d+/);
+        let link = "";
 
-      return `- **${update.repository}**: ${update.oldVersion} → ${
-        update.newVersion
-      } ([View ${isTaggedVersion ? "Release" : "Commit"}](${link}))`;
-    }),
-    "",
-    ...(errors.length > 0
-      ? ["## Errors", ...errors.map((error) => `- ${error}`)]
-      : []),
-  ].join("\n");
+        if (isTaggedVersion) {
+          // Link to release notes
+          link = `https://github.com/${update.repository}/releases/tag/${update.newVersion}`;
+        } else {
+          // Link to commit
+          link = `https://github.com/${update.repository}/commit/${update.newCommit}`;
+        }
+
+        return `- **${update.repository}**: ${update.oldVersion} → ${
+          update.newVersion
+        } ([View ${isTaggedVersion ? "Release" : "Commit"}](${link}))`;
+      }),
+      ""
+    );
+  }
+
+  if (cooldownSkips.length > 0) {
+    sections.push(
+      "## Skipped Due to Cooldown",
+      ...cooldownSkips.map((skip) => {
+        const dateStr = skip.publishedAt
+          ? skip.publishedAt.toISOString().replace("T", " ").slice(0, 19)
+          : "unknown";
+        return `- **${skip.repository}**: Latest version ${skip.latestVersion}${
+          dateStr !== "unknown" ? ` published at ${dateStr}` : ""
+        } (within ${skip.cooldownHours}h cooldown)`;
+      }),
+      ""
+    );
+  }
+
+  if (errors.length > 0) {
+    sections.push(
+      "## Errors",
+      ...errors.map((error) => `- ${error}`)
+    );
+  }
+
+  const content = sections.join("\n");
 
   vscode.workspace
     .openTextDocument({
