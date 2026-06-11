@@ -95,7 +95,7 @@
   },
   "dependencies": {
     "semver": "^7.7.4",
-    "yaml": "^2.3.4"
+    "yaml": "^2.9.0"
   },
   "allowScripts": {
     "esbuild@0.28.0": true
