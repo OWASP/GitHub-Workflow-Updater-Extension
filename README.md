@@ -76,7 +76,7 @@ To prevent an action from being updated, add a `# skip-pinning` comment:
 
 ## Requirements
 
-- VS Code 1.74.0 or higher
+- VS Code 1.97.0 or higher
 - Internet connection for GitHub API access
 
 ## Security
