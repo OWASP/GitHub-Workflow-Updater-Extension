@@ -36,9 +36,21 @@ Click <cursor:extension/OWASP.Github-Workflow-Updater-Extension>
 
 ## Usage
 
+### Update a single workflow file
+
 1. Open a GitHub workflow file (`.yml` or `.yaml`)
-2. Click the sync button in the editor toolbar
-3. The extension will update all actions to their latest pinned versions
+2. Click the sync button in the editor toolbar, or right-click the file in the Explorer and select **Update GitHub Workflow Actions**
+3. The extension will update all actions in that file to their latest pinned versions
+
+### Update all workflows in the current folder
+
+1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run `GitHub Workflow Updater: Update All Workflows in Current Folder`
+3. The extension scans all `.yml` and `.yaml` files recursively under the directory of the currently active file, updates any actions that need pinning, and saves the changed files
+
+You can also right-click any folder in the Explorer and select **Update All Workflows in Current Folder**.
+
+> Note: The command processes every workflow file and continues if one fails. A summary notification shows how many actions were updated, skipped, or errored.
 
 ## Configuration
 
@@ -100,7 +112,7 @@ This extension enhances security by:
 2. **Bundle for production** (used by `vsce package` automatically):
 
    ```bash
-   npm run esbuild
+   npm run bundle
    ```
 
    Or, for development with live reloading:
@@ -109,7 +121,7 @@ This extension enhances security by:
    npm run watch
    ```
 
-   The extension uses **esbuild** for bundling: all source files and dependencies are combined into a single `out/extension.js`. TypeScript compilation (`npm run compile`) is still used by the test suite, which imports the individual compiled modules.
+   The extension uses **rollup** for bundling: all source files and dependencies are combined into a single `out/extension.js`. TypeScript compilation (`npm run compile`) is still used by the test suite, which imports the individual compiled modules.
 
 ### Testing the Extension
 
@@ -148,11 +160,16 @@ The test suite is offline by design:
 ### Packaging for Distribution
 
 ```bash
-npm install -g @vscode/vsce
-vsce package
+npx vsce package
 ```
 
-This creates a `.vsix` file that can be installed in VS Code or Cursor. The `vsce package` command automatically runs the esbuild bundler (via the `vscode:prepublish` script), so no separate build step is needed.
+Or use the provided npm script:
+
+```bash
+npm run package
+```
+
+This creates a `.vsix` file that can be installed in VS Code or Cursor. The `vsce package` command automatically runs the rollup bundler (via the `vscode:prepublish` script), so no separate build step is needed.
 
 ## Installation
 

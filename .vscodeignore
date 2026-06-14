@@ -4,6 +4,7 @@ src/**
 test/**
 .gitignore
 **/tsconfig.json
+rollup.config.mjs
 **/*.map
 **/*.ts
 .github/**

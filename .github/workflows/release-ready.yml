@@ -22,7 +22,5 @@ jobs:
         run: npm install
       - name: Run Tests
         run: npm run pretest && npm test
-      - name: Install VSCE
-        run: npm install -g @vscode/vsce
       - name: Package Extension (no publish)
-        run: vsce package --no-git-tag-version --no-update-package-json
+        run: npx vsce package --no-git-tag-version --no-update-package-json
