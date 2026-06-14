@@ -19,6 +19,7 @@ export interface UpdateResult {
     oldVersion: string;
     newVersion: string;
     newCommit: string;
+    filePath?: string;
 }
 
 export class WorkflowParser {
