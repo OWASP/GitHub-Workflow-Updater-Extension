@@ -111,7 +111,7 @@
     "@rollup/plugin-terser": "^1.0.0",
     "@types/node": "^16.18.126",
     "@types/semver": "^7.7.0",
-    "@types/vscode": "^1.97.0",
+    "@types/vscode": "^1.120.0",
     "@vscode/vsce": "^3.9.2",
     "rollup": "^4.62.0",
     "typescript": "^4.9.4"
