@@ -114,7 +114,7 @@
     "@types/vscode": "^1.97.0",
     "@vscode/vsce": "^3.9.2",
     "rollup": "^4.62.0",
-    "typescript": "^4.9.4"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "semver": "^7.8.2",
